@@ -9,8 +9,9 @@ Gem::Specification.new do |s|
 
   s.license = 'MIT'
   s.summary = 'crawls usage data for ShinhanCard, a Korean credit card company.'
-  s.description = 'Handochogwa is a rubygem that crawls Korean credit card companies'
-  s.required_ruby_version = '~> 2.3'
+  s.description = 'Handochogwa is a rubygem that crawls and parses '\
+    'data from websites of Korean credit card companies'
+  s.required_ruby_version = '~> 2.4'
   s.homepage = 'https://github.com/devleoper/handochogwa'
 
   s.add_runtime_dependency 'httpclient', '~> 2.8'

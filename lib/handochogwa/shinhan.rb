@@ -15,24 +15,14 @@ module Handochogwa
     end
 
     def authorize(username, password)
-      response = request(
+      post(
         'cmm/MOBFMLOGIN/CMMServiceMemLoginC.ajax',
         authorize_params(username, password)
       )
     end
 
-    def request(url, body = {})
-      response_json = @client.post_content(
-        "https://m.shinhancard.com/mob/#{url}",
-        body: body
-      )
-      response = JSON.parse(response_json)
-
-      response['mbw_json']
-    end
-
     def brief_data
-      response = request('MOBFM006N/MOBFM006R0102.ajax')
+      response = post('MOBFM006N/MOBFM006R0102.ajax')
 
       recent_usage = process_array(
         response['HPG01499'],
@@ -50,8 +40,18 @@ module Handochogwa
 
     private
 
+    def post(url, body = {})
+      response_json = @client.post_content(
+        "https://m.shinhancard.com/mob/#{url}",
+        body: body
+      )
+      response = JSON.parse(response_json)
+
+      response['mbw_json']
+    end
+
     def process_array(data, replaces)
-      data.first[1].length.times.map do |i|
+      Array.new(data.first[1].length) do |i|
         data.keys.map do |key|
           [
             (replaces[key] || key),
@@ -68,13 +68,19 @@ module Handochogwa
         'https://m.shinhancard.com/solution/nfilter/jsp/open_nFilter_keypad_manager.jsp',
         body: create_session_post_params
       )
-      parser = Nokogiri::HTML(response)
+      html = Nokogiri::HTML(response)
 
-      @modulus = OpenSSL::BN.new(parser.css('#nfilter_modulus')[0]['value'].to_i(16))
-      @exponent = OpenSSL::BN.new(parser.css('#nfilter_exponent')[0]['value'].to_i(16))
+      @modulus = parse_hex(html.css('#nfilter_modulus')[0]['value'])
+      @exponent = parse_hex(html.css('#nfilter_exponent')[0]['value'])
+    end
+
+    def parse_hex(hexstring)
+      OpenSSL::BN.new(hexstring.to_i(16))
     end
 
     def create_session_post_params
+      image_manager_url = 'solution/nfilter/jsp/open_nFilter_image_manager.jsp'
+
       {
         nfilter_enable_nosecret: true,
         nfilter_is_init: true,
@@ -83,7 +89,7 @@ module Handochogwa
         nFilter_screenKeyPadSize: 390,
         nFilter_screenSize: 400,
         nfilter_type: 15,
-        ResponseImageManager: 'solution/nfilter/jsp/open_nFilter_image_manager.jsp'
+        ResponseImageManager: image_manager_url
       }
     end
 
@@ -100,10 +106,10 @@ module Handochogwa
         channel: 'person',
         device: 'WI',
         nfilter: {
-          "type": 'mob',
-          "once": 'true',
-          "dash": '',
-          "encrypt": "pwd=#{hex_password}"
+          type: 'mob',
+          once: 'true',
+          dash: '',
+          encrypt: "pwd=#{hex_password}"
         }.to_json
       }
     end
