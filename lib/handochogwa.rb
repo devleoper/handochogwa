@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative './handochogwa/shinhan.rb'
+require_relative './handochogwa/hyundai'
 
 # 카드 승인/이용정보를 가져오는 RubyGem
 module Handochogwa
